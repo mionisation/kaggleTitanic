@@ -85,3 +85,31 @@ print(survival_table)
 survival_table[survival_table > 0.5] = 1
 survival_table[survival_table <= 0.5] = 0
 print(survival_table)
+
+#Read test file again and write results to results file
+predictionPath = 'genderSocioEconomicModel.csv'
+with open(testSetPath, 'r') as csvTestFileHandle, open(predictionPath, "w") as predictionFileHandle:
+	testFile = csv.reader(csvTestFileHandle)
+	header = next(testFile)
+	predictionFile = csv.writer(predictionFileHandle)
+	predictionFile.writerow(["PassengerID", "Survived"])
+	for row in testFile:
+		for j in range(int(number_of_brackets)):
+			try: 
+				row[8] = float(row[8])
+			except:
+				bin_fare = 3 - float(row[1])
+				break
+			#Categorize fare class according to paid price
+			if row[8] > fare_ceiling:
+				bin_fare = number_of_brackets - 1
+				break
+			if (row[8] >= j * fare_bracket_size) and (row[8] < (j+1) * fare_bracket_size):
+				bin_fare = j
+				break
+		if row[3] == 'female':
+			predictionFile.writerow([row[0], "%d" % int(survival_table[ 0, float(row[1]) - 1, bin_fare ])])
+		else:
+			predictionFile.writerow([row[0], "%d" % int(survival_table[ 1, float(row[1]) - 1, bin_fare])])
+print("Gender and Price Classes based predictions written to {}".format(predictionPath))
+
